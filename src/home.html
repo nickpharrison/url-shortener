@@ -1,15 +1,64 @@
 <html>
 	<head>
 		<title>URL Shortener</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 	</head>
 	<body>
-		<div>
-			<input id="input-box" type="text" placeholder="Paste link here"/>
-			<button type="button" onclick="shorten()">Shorten</button>
-			<div id="result"></div>
+		<div id="main">
+			<div id="input-div">
+				<input id="input-box" type="text" placeholder="Paste link here"/>
+			</div>
+			<div class="button-div">
+				<button id="submit-button" type="button" onclick="shorten()">Shorten</button>
+			</div>
+			<div id="result-div">
+				<code id="result"></code>
+			</div>
+			<div class="button-div">
+				<button id="copy-button" type="button" onclick="copy()" style="display: none;">Copy</button>
+			</div>
 		</div>
+		<style>
+			body {
+				margin: 0px;
+			}
+			#main {
+				margin: 30vh 10vw;
+			}
+			#input-div {
+				width: 100%;
+				margin: auto;
+			}
+			#input-box {
+				padding: 20px 12px;
+				width: 100%;
+			}
+			.button-div {
+				width: 100%;
+				margin: auto;
+				margin-top: 20px;
+				text-align: center;
+			}
+			.button-div button {
+				padding: 20px 30px;
+			}
+			#result-div {
+				margin-top: 20px;
+				width: 100%;
+				text-align: center;
+				box-sizing: border-box;
+				background-color: #cccccc;
+				border-radius: 3px;
+			}
+			#result-div {
+				margin-top: 20px;
+				width: 100%;
+				text-align: center;
+			}
+		</style>
 		<script>
+			let currentUrl = '';
 			function shorten() {
 				const url = $('#input-box').val();
 				let sendTo = location.pathname;
@@ -24,20 +73,29 @@
 					}),
 					contentType: 'application/json',
 					success: (result) => {
-						let url = location.origin + location.pathname;
-						if (!url.endsWith('/')) {
-							url += '/';
+						currentUrl = location.origin + location.pathname;
+						if (!currentUrl.endsWith('/')) {
+							currentUrl += '/';
 						}
-						url += result.id;
-						navigator.clipboard.writeText(url);
-						$('#result').html('Copied to clipboard!');
+						currentUrl += result.id;
+						$('#result').text(currentUrl);
+						$('#result-div').css('padding', '20px');
+						$('#copy-button').show();
 					},
-					error: (err) => {
-						$('#result').html('Error!');
+					error: (res) => {
+						if (res?.responseJSON?.invalidUrl && res?.responseJSON?.message) {
+							$('#result').text(res?.responseJSON?.message);
+						} else {
+							$('#result').text('Error!');
+						}
+						$('#result-div').css('padding', '20px');
 						console.error(err);
 					},
 					dataType: 'json'
 				});
+			}
+			function copy() {
+				navigator.clipboard.writeText(currentUrl);
 			}
 		</script>
 	</body>

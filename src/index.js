@@ -6,6 +6,8 @@ const sqlite3 = require('sqlite3').verbose();
 
 const db = new sqlite3.Database(process.env.DATABASE_PATH);
 
+class InvalidUrlError extends Error {}
+
 const app = express();
 
 const makeId = (length) => {
@@ -20,6 +22,33 @@ const makeId = (length) => {
     return result;
 }
 
+const parseUrl = (url) => {
+	if (typeof url !== 'string') {
+		throw new InvalidUrlError(`URL must be a string`);
+	}
+	let obj;
+	try {
+		obj = new URL(url);
+	} catch (err1) {
+		if (err1.code !== 'ERR_INVALID_URL') {
+			throw err1;
+		}
+		try {
+			url = 'http://' + url;
+			obj = new URL(url);
+		} catch (err2) {
+			throw new InvalidUrlError('Invalid URL');
+		}
+	}
+	if (obj.protocol !== 'http:' && obj.protocol !== 'https:') {
+		throw new InvalidUrlError('Unrecognised protocol');
+	}
+	if (!obj.hostname?.includes('.')) {
+		throw new InvalidUrlError('Hostname must have a dot');
+	}
+	return url;
+}
+
 db.exec(`CREATE TABLE IF NOT EXISTS urls (
 	id TEXT PRIMARY KEY ASC,
 	url TEXT UNIQUE
@@ -29,7 +58,7 @@ db.exec(`CREATE TABLE IF NOT EXISTS urls (
 
 app.post(process.env.URL_BASE + '/submit', express.json(), (req, res, next) => {
 
-	const url = req.body.url;
+	const url = parseUrl(req.body.url);
 
 	db.all('SELECT id FROM urls WHERE url=?;', [url], (err, rows) => {
 		if (err) {
@@ -49,6 +78,15 @@ app.post(process.env.URL_BASE + '/submit', express.json(), (req, res, next) => {
 			return res.json({id: id});
 		});
 	});
+
+}, (err, req, res, next) => {
+
+	if (!(err instanceof InvalidUrlError)) {
+		return next(err);
+	}
+
+	res.status(400);
+	res.json({invalidUrl: true, message: err.message});
 
 });
 
