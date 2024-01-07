@@ -27,7 +27,7 @@ db.exec(`CREATE TABLE IF NOT EXISTS urls (
 .exec(`CREATE INDEX IF NOT EXISTS url_index ON urls (url);`)
 .exec(`CREATE INDEX IF NOT EXISTS id_index ON urls (id);`);
 
-app.post('/url/submit', express.json(), (req, res, next) => {
+app.post(process.env.URL_BASE + '/submit', express.json(), (req, res, next) => {
 
 	const url = req.body.url;
 
@@ -52,13 +52,13 @@ app.post('/url/submit', express.json(), (req, res, next) => {
 
 });
 
-app.get('/url', (req, res, next) => {
+app.get(process.env.URL_BASE + '/', (req, res, next) => {
 
 	res.sendFile(path.resolve('./src/home.html'));
 
 });
 
-app.get('/url/:id', (req, res, next) => {
+app.get(process.env.URL_BASE + '/:id', (req, res, next) => {
 
 	const id = req.params.id;
 

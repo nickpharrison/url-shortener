@@ -12,14 +12,23 @@
 		<script>
 			function shorten() {
 				const url = $('#input-box').val();
+				let sendTo = location.pathname;
+				if (!sendTo.endsWith('/')) {
+					sendTo += '/';
+				}
+				sendTo += 'submit';
 				$.post({
-					url: location.pathname + '/submit',
+					url: sendTo,
 					data: JSON.stringify({
 						url: url,
 					}),
 					contentType: 'application/json',
 					success: (result) => {
-						const url = location.origin + location.pathname + '/' + result.id;
+						let url = location.origin + location.pathname;
+						if (!url.endsWith('/')) {
+							url += '/';
+						}
+						url += result.id;
 						navigator.clipboard.writeText(url);
 						$('#result').html('Copied to clipboard!');
 					},
