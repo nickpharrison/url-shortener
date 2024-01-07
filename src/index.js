@@ -26,6 +26,9 @@ const parseUrl = (url) => {
 	if (typeof url !== 'string') {
 		throw new InvalidUrlError(`URL must be a string`);
 	}
+	if (url === '') {
+		throw new InvalidUrlError(`Please specify a URL`);
+	}
 	let obj;
 	try {
 		obj = new URL(url);
@@ -44,7 +47,7 @@ const parseUrl = (url) => {
 		throw new InvalidUrlError('Unrecognised protocol');
 	}
 	if (!obj.hostname?.includes('.')) {
-		throw new InvalidUrlError('Hostname must have a dot');
+		throw new InvalidUrlError('Invalid hostname');
 	}
 	return url;
 }
