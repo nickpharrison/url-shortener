@@ -1,0 +1,35 @@
+<html>
+	<head>
+		<title>URL Shortener</title>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+	</head>
+	<body>
+		<div>
+			<input id="input-box" type="text" placeholder="Paste link here"/>
+			<button type="button" onclick="shorten()">Shorten</button>
+			<div id="result"></div>
+		</div>
+		<script>
+			function shorten() {
+				const url = $('#input-box').val();
+				$.post({
+					url: location.pathname + '/submit',
+					data: JSON.stringify({
+						url: url,
+					}),
+					contentType: 'application/json',
+					success: (result) => {
+						const url = location.origin + location.pathname + '/' + result.id;
+						navigator.clipboard.writeText(url);
+						$('#result').html('Copied to clipboard!');
+					},
+					error: (err) => {
+						$('#result').html('Error!');
+						console.error(err);
+					},
+					dataType: 'json'
+				});
+			}
+		</script>
+	</body>
+</html>
