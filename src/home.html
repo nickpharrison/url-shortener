@@ -83,13 +83,12 @@
 						$('#copy-button').show();
 					},
 					error: (res) => {
-						if (res?.responseJSON?.invalidUrl && res?.responseJSON?.message) {
+						if (res?.responseJSON?.friendlyError && res?.responseJSON?.message) {
 							$('#result').text(res?.responseJSON?.message);
 						} else {
 							$('#result').text('Error!');
 						}
 						$('#result-div').css('padding', '20px');
-						console.error(err);
 					},
 					dataType: 'json'
 				});

@@ -6,7 +6,9 @@ const sqlite3 = require('sqlite3').verbose();
 
 const db = new sqlite3.Database(process.env.DATABASE_PATH);
 
-class InvalidUrlError extends Error {}
+class FriendlyError extends Error {}
+
+const noIdError = Symbol('NoIdError');
 
 const app = express();
 
@@ -24,10 +26,10 @@ const makeId = (length) => {
 
 const parseUrl = (url) => {
 	if (typeof url !== 'string') {
-		throw new InvalidUrlError(`URL must be a string`);
+		throw new FriendlyError(`URL must be a string`);
 	}
 	if (url === '') {
-		throw new InvalidUrlError(`Please specify a URL`);
+		throw new FriendlyError(`Please specify a URL`);
 	}
 	let obj;
 	try {
@@ -40,14 +42,14 @@ const parseUrl = (url) => {
 			url = 'http://' + url;
 			obj = new URL(url);
 		} catch (err2) {
-			throw new InvalidUrlError('Invalid URL');
+			throw new FriendlyError('Invalid URL');
 		}
 	}
 	if (obj.protocol !== 'http:' && obj.protocol !== 'https:') {
-		throw new InvalidUrlError('Unrecognised protocol');
+		throw new FriendlyError('Unrecognised protocol');
 	}
 	if (!obj.hostname?.includes('.')) {
-		throw new InvalidUrlError('Invalid hostname');
+		throw new FriendlyError('Invalid hostname');
 	}
 	return url;
 }
@@ -84,12 +86,12 @@ app.post(process.env.URL_BASE + '/submit', express.json(), (req, res, next) => {
 
 }, (err, req, res, next) => {
 
-	if (!(err instanceof InvalidUrlError)) {
+	if (!(err instanceof FriendlyError)) {
 		return next(err);
 	}
 
 	res.status(400);
-	res.json({invalidUrl: true, message: err.message});
+	res.json({friendlyError: true, message: err.message});
 
 });
 
@@ -107,8 +109,8 @@ app.get(process.env.URL_BASE + '/:id', (req, res, next) => {
 		if (err) {
 			return next(err);
 		}
-		if (rows.length !== 1) {
-			return next(new Error(`Found ${rows.length} possible entries`));
+		if (rows.length === 0) {
+			return next(); // Causes the default 404 page
 		}
 		res.redirect(308, rows[0].url);
 	});
