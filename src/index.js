@@ -8,7 +8,7 @@ const db = new sqlite3.Database(process.env.DATABASE_PATH);
 
 class FriendlyError extends Error {}
 
-const noIdError = Symbol('NoIdError');
+const assetsFolder = path.join(__dirname, '../assets');
 
 const app = express();
 
@@ -60,6 +60,8 @@ db.exec(`CREATE TABLE IF NOT EXISTS urls (
 );`)
 .exec(`CREATE INDEX IF NOT EXISTS url_index ON urls (url);`)
 .exec(`CREATE INDEX IF NOT EXISTS id_index ON urls (id);`);
+
+app.get(process.env.URL_BASE + '/favicon.ico', (req, res, next) => res.sendFile(path.join(assetsFolder, 'peach-transparent.png')));
 
 app.post(process.env.URL_BASE + '/submit', express.json(), (req, res, next) => {
 
