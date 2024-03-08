@@ -17,7 +17,10 @@
 				<code id="result"></code>
 			</div>
 			<div class="button-div">
-				<button id="copy-button" type="button" onclick="copy()" style="display: none;">Copy</button>
+				<button id="copy-button" type="button" onclick="copyCurrentUrl()" style="display: none;">Copy</button>
+			</div>
+			<div id="tally-div">
+				<span id="tally-span"></span> URLs Shortened
 			</div>
 		</div>
 		<style>
@@ -57,31 +60,43 @@
 				width: 100%;
 				text-align: center;
 			}
+			#tally-div {
+				text-align: center;
+				color: #666666;
+				margin-top: 15px;
+			}
 		</style>
 		<script>
 			let currentUrl = '';
-			function shorten() {
-				const url = $('#input-box').val();
-				let sendTo = location.pathname;
+			function appendToCurrentUrl(addToUrl, includeOrigin) {
+				let sendTo = '';
+				if (includeOrigin) {
+					sendTo += location.origin;
+				}
+				sendTo += location.pathname;
 				if (!sendTo.endsWith('/')) {
 					sendTo += '/';
 				}
-				sendTo += 'submit';
+				if (addToUrl.startsWith('/')) {
+					addToUrl.substring(1);
+				}
+				sendTo += addToUrl;
+				return sendTo;
+			}
+			function shorten() {
+				const url = $('#input-box').val();
 				$.post({
-					url: sendTo,
+					url: appendToCurrentUrl('submit', false),
 					data: JSON.stringify({
 						url: url,
 					}),
 					contentType: 'application/json',
 					success: (result) => {
-						currentUrl = location.origin + location.pathname;
-						if (!currentUrl.endsWith('/')) {
-							currentUrl += '/';
-						}
-						currentUrl += result.id;
+						currentUrl = appendToCurrentUrl(result.id, true);
 						$('#result').text(currentUrl);
 						$('#result-div').css('padding', '20px');
 						$('#copy-button').show();
+						$('#tally-span').text(Number.parseInt($('#tally-span').text()) + 1);
 					},
 					error: (res) => {
 						if (res?.responseJSON?.friendlyError && res?.responseJSON?.message) {
@@ -94,9 +109,18 @@
 					dataType: 'json'
 				});
 			}
-			function copy() {
+			function copyCurrentUrl() {
 				navigator.clipboard.writeText(currentUrl);
 			}
+			$.get({
+				url: appendToCurrentUrl('stats'),
+				success: (result) => {
+					$('#tally-span').text(result.tally);
+				},
+				error: (res) => {
+					console.error('Error getting stats:', res);
+				}
+			});
 		</script>
 	</body>
 </html>

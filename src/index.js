@@ -12,6 +12,8 @@ const assetsFolder = path.join(__dirname, '../assets');
 
 const app = express();
 
+const reservedWords = ['stats'];
+
 const makeId = (length) => {
     let result = '';
     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -21,6 +23,9 @@ const makeId = (length) => {
 		result += characters.charAt(Math.floor(Math.random() * charactersLength));
 		counter += 1;
     }
+	if (reservedWords.includes(result)) {
+		return makeId(length);
+	}
     return result;
 }
 
@@ -100,6 +105,20 @@ app.post(process.env.URL_BASE + '/submit', express.json(), (req, res, next) => {
 app.get(process.env.URL_BASE + '/', (req, res, next) => {
 
 	res.sendFile(path.resolve('./src/home.html'));
+
+});
+
+app.get(process.env.URL_BASE + '/stats', (req, res, next) => {
+
+	db.all('SELECT count(1) AS tally FROM urls;', (err, rows) => {
+		if (err) {
+			return next(err);
+		}
+		const row = rows[0];
+		res.json({
+			tally: row?.tally ?? 0
+		});
+	});
 
 });
 
