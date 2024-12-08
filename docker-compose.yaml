@@ -1,0 +1,17 @@
+services:
+
+  app:
+    container_name: url-shortener
+    image: docker-registry.harrison.red/url-shortener
+    ports:
+      - 7345:7345
+    volumes:
+      - ./database:/database
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+
+networks:
+  default:
+    driver_opts:
+      com.docker.network.bridge.name: br-urlshort
