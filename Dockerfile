@@ -1,8 +1,6 @@
 
 FROM node:20.18.1-alpine
 
-ENV NODE_ENV production
-
 RUN mkdir /database && mkdir /app
 
 WORKDIR /app
